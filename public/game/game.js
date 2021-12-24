@@ -50,11 +50,15 @@ function loadLevel(level) {
   for (var i = 0; level.layers.charAt(i) != '/'; i++) {
     /* Block */
     if (level.layers.charAt(i) === '*') {
-      var matrix = mat4.create();
-      mat4.identity(matrix);
-      mat4.translate(matrix, [w - level.w / 2.0, h - level.h / 2.0, d - level.d / 2.0]);
-      mat4.scale(matrix, [0.45, 0.45, 0.45]);
-      createCube(matrix, "field");
+      var cube = new Obj();
+      Object.assign(cube, allModels.find(obj => obj.name === 'cube'));
+
+      cube.matrix = mat4.identity(mat4.create());
+      mat4.translate(cube.matrix, [w - level.w / 2.0, h - level.h / 2.0 - 0.5, d - level.d / 2.0]);
+      mat4.scale(cube.matrix, [1 / 1.6, 1 / 1.6, 1 / 1.6]);
+      cube.name = 'field';
+      allModels.push(cube);
+
       if (curLevel[w] == undefined)
         curLevel.push([]);
       if (curLevel[w][h] == undefined)
@@ -77,11 +81,9 @@ function loadLevel(level) {
     else if (level.layers.charAt(i) === 'P') {
       var matrix = mat4.create();
       mat4.identity(matrix);
-      mat4.translate(matrix, [w - level.w / 2.0, h - level.h / 2.0, d - level.d / 2.0]);
-      mat4.scale(matrix, [0.5, 0.5, 0.5]);
-      //createCube(matrix, "player");
-      //createFromOBJ("../bin/objs/cube/untitled.obj", "player");
-      allModels.find(isPlayer).matrix = matrix;
+      mat4.translate(matrix, [0, -0.5, 0]);
+      mat4.translate(matrix, [w - level.w / 2.0, h - level.h / 2.0 + 0.5, d - level.d / 2.0]);
+      allModels.find(obj => obj.name === 'player').matrix = matrix;
 
       Object.assign(playerStartMatrix, matrix);
       if (curLevel[w] == undefined)
@@ -134,7 +136,7 @@ function initGame() {
     ..............
 
     ..............
-    ..............
+    ....******....
     ..............
     .......P......
     ..............
@@ -148,24 +150,17 @@ function initGame() {
     /`;
 
   createCamera(
-    2, -3, 2,
+    0, -6, 0,
     0.6, -0.6, 0);
-  Object.assign(pMatrix, allModels.find(isCamera).matrix);
+  Object.assign(pMatrix, allModels.find(obj => obj.name === 'camera').matrix);
 
   loadLevel(level);
-}
 
-/***
- * Find objects in models array
- ***/
-function isPlayer(element, index, array) {
-  if (element.name === "player")
-    return true;
-}
-
-function isCamera(element, index, array) {
-  if (element.name === "camera")
-    return true;
+  for (var i = 0; i < allModels.length; i++) {
+    if (allModels[i].name === 'cube') {
+      allModels.splice(i, 1);
+    }
+  }
 }
 
 /* Linear interpolation for 1f value */
@@ -201,10 +196,10 @@ function matrixLinearInterp(a, b, t) {
 /* Main response game function */
 function responseGame() {
   playerMoving();
-  mat4.multiply(playerStartMatrix, mat4.multiply(playerPositionMatrix, playerRotationMatrix, mat4.create()), allModels.find(isPlayer).matrix);
-  //mat4.multiply(pMatrix, mat4.translate(mat4.identity(mat4.create()), [0, -0.01, 0]), allModels.find(isCamera).matrix);
-  mat4.multiply(pMatrix, cameraPositionMatrix, allModels.find(isCamera).matrix);
-  mat4.toMat3(playerRotationMatrix, allModels.find(isPlayer).normalMatrix);
+  //mat4.multiply(mat4.multiply(mat4.identity(mat4.create()), playerStartMatrix, mat4.create()), playerRotationMatrix, allModels.find(obj => obj.name === 'player').matrix);
+  mat4.multiply(mat4.multiply(playerPositionMatrix, playerStartMatrix, mat4.create()), playerRotationMatrix, allModels.find(obj => obj.name === 'player').matrix);
+  mat4.multiply(pMatrix, cameraPositionMatrix, allModels.find(obj => obj.name === 'camera').matrix);
+  mat4.toMat3(playerRotationMatrix, allModels.find(obj => obj.name === 'player').normalMatrix);
   for (var key in pressedOnce)
     delete pressedOnce[key];
 }

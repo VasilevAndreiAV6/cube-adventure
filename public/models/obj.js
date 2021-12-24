@@ -2,8 +2,13 @@ var allObjs = [];
 
 const objectsNames = [
   {
-    filename: 'https://webglfundamentals.org/webgl/resources/models/cube/cube.obj',
+    filename: 'rainbow_cube.obj',
     objName: 'player',
+    text: '',
+  },
+  {
+    filename: 'cube.obj',
+    objName: 'cube',
     text: '',
   }
 ];
@@ -29,6 +34,8 @@ function parseOBJ(text) {
     [],   // normals
   ];
 
+  var maxY = 0;
+
   /* Create object from *.obj file */
   function addVertex(vert) {
     const ptn = vert.split('/');
@@ -44,6 +51,7 @@ function parseOBJ(text) {
 
   const keywords = {
     v(parts) {
+      maxY = (maxY < parts.map(parseFloat)[1]) * parts.map(parseFloat)[1];
       objPositions.push(parts.map(parseFloat));
     },
     vn(parts) {
@@ -84,6 +92,11 @@ function parseOBJ(text) {
     handler(parts, unparsedArgs);
   }
 
+  for (var i = 0; i < webglVertexData[0].length; i++) {
+    if (i % 3 == 1)
+      webglVertexData[0][i] -= maxY / 2.0;
+  }
+
   return {
     position: webglVertexData[0],
     texcoord: webglVertexData[1],
@@ -91,68 +104,72 @@ function parseOBJ(text) {
   };
 }
 
-/* Create object from *.obj file */
-function createFromOBJ(objectProp) {
-  const data = parseOBJ(objectProp.text);
+class Obj {
+  constructor(objectProp) {
+    if (objectProp == undefined)
+      return;
+    const data = parseOBJ(objectProp.text);
 
-  var object = {};
+    this.matrix = mat4.identity(mat4.create());
+    this.name = objectProp.objName;
+    this.normalMatrix = mat4.toMat3(mat4.identity(mat4.create()));
 
-  object.matrix = mat4.identity(mat4.create());
-  object.name = objectProp.objName;
-  object.normalMatrix = mat4.toMat3(mat4.identity(mat4.create()));
+    /* vertex buffer create */
+    this.VertexPositionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.VertexPositionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.position), gl.STATIC_DRAW);
+    this.VertexPositionBuffer.itemSize = 3;
+    this.VertexPositionBuffer.numItems = data.position.length / 3;
 
-  /* vertex buffer create */
-  object.VertexPositionBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, object.VertexPositionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.position), gl.STATIC_DRAW);
-  object.VertexPositionBuffer.itemSize = 3;
-  object.VertexPositionBuffer.numItems = 36;
+    /* normal buffer create */
+    this.NormalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.NormalBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.normal), gl.STATIC_DRAW);
 
-  /* normal buffer create */
-  object.NormalBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, object.NormalBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.normal), gl.STATIC_DRAW);
+    /* texture coord buffer create */
+    this.TextureCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.TextureCoordBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.texcoord), gl.STATIC_DRAW);
+    this.texture = loadTexture('cube.png');
+  }
 
-  /* texture coord buffer create */
-  object.TextureCoordBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, object.TextureCoordBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data.texcoord), gl.STATIC_DRAW);
-
-  object.render = () => {
-
-    gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, object.matrix);
-    gl.uniformMatrix3fv(shaderProgram.normalMatrix, false, object.normalMatrix);
+  render() {
+    gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, this.matrix);
+    gl.uniformMatrix3fv(shaderProgram.normalMatrix, false, this.normalMatrix);
 
     // vertex
-    gl.bindBuffer(gl.ARRAY_BUFFER, object.VertexPositionBuffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.VertexPositionBuffer);
     gl.vertexAttribPointer(
       shaderProgram.vertexPositionAttribute,
-      object.VertexPositionBuffer.itemSize,
+      this.VertexPositionBuffer.itemSize,
       gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
 
     // normals
-    gl.bindBuffer(gl.ARRAY_BUFFER, object.NormalBuffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.NormalBuffer);
     gl.vertexAttribPointer(
       shaderProgram.vertexNormalAttribute,
       3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
 
     // texture coords
-    gl.bindBuffer(gl.ARRAY_BUFFER, object.TextureCoordBuffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.TextureCoordBuffer);
     gl.vertexAttribPointer(
       shaderProgram.textureCoordAttribute,
       2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, object.texture);
+    gl.bindTexture(gl.TEXTURE_2D, this.texture);
     gl.uniform1i(shaderProgram.uSampler, 0);
 
-    gl.drawArrays(gl.TRIANGLES, 0, object.VertexPositionBuffer.numItems);
+    gl.drawArrays(gl.TRIANGLES, 0, this.VertexPositionBuffer.numItems);
   }
+};
 
-  allModels.push(object);
+/* Create object from *.obj file */
+function createFromOBJ(objectProp) {
+  allModels.push(new Obj(objectProp));
 }
 
 async function loadAllObjs() {

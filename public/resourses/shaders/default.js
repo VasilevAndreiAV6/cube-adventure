@@ -12,9 +12,9 @@ fragment =
   {
     vec3 V = normalize(P);
     vec3 color = vec3(0);
-    vec3 Ka = vec3(0.15);
-    vec3 Kd = vec3(0.4);
-    vec3 Ks = vec3(0.8);
+    vec3 Ka = vec3(0);
+    vec3 Kd = vec3(1);
+    vec3 Ks = vec3(0);
     // Reverse normal if need
     //N = faceforward(N, V, N);
   

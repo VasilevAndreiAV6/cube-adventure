@@ -1,0 +1,23 @@
+{
+  "name": "opengl3d",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node indes.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VasilevAndreiAV6/cube-adventure.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/VasilevAndreiAV6/cube-adventure/issues"
+  },
+  "homepage": "https://github.com/VasilevAndreiAV6/cube-adventure#readme",
+  "dependencies": {
+    "express": "^4.17.2"
+  }
+}

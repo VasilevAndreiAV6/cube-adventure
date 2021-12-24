@@ -21,7 +21,8 @@ var midAnimationPlayerPosition = mat4.create();
 var endAnimationPlayerPosition = mat4.create();
 
 /* Angle that player rotated */
-var playerAngle = 0;
+var playerAngleX = 0;
+var playerAngleZ = 0;
 
 /* Moving animation time (in ms) */
 var animationTime = 500;
@@ -48,8 +49,8 @@ function moveRight() {
     Object.assign(startCameraPosition, cameraPositionMatrix);
     Object.assign(endCameraPosition, cameraPositionMatrix);
     Object.assign(midCameraPosition, cameraPositionMatrix);
-    mat4.translate(midAnimationPlayerPosition, [1, (Math.sqrt(2) - 1), 0]);
-    mat4.translate(endAnimationPlayerPosition, [2, 0, 0]);
+    mat4.translate(midAnimationPlayerPosition, [0.5, (Math.sqrt(2) - 1) / 2, 0]);
+    mat4.translate(endAnimationPlayerPosition, [1, 0, 0]);
     mat4.translate(midCameraPosition, [-0.5, 0, 0]);
     mat4.translate(endCameraPosition, [-1, 0, 0]);
   }
@@ -58,16 +59,20 @@ function moveRight() {
     if (currentTime - startTime <= animationTime / 2) {
       playerPositionMatrix = matrixLinearInterp(startAnimationPlayerPosition, midAnimationPlayerPosition, (currentTime - startTime) / animationTime * 2);
       cameraPositionMatrix = matrixLinearInterp(startCameraPosition, midCameraPosition, (currentTime - startTime) / animationTime * 2);
-      playerRotationMatrix = mat4.rotateZ(mat4.identity(mat4.create()), linearInterp(playerAngle, playerAngle - Math.PI / 4.0, (currentTime - startTime) / animationTime * 2));
+      mat4.multiply(
+        mat4.rotateZ(mat4.identity(mat4.create()), linearInterp(playerAngleZ, playerAngleZ - Math.PI / 4.0, (currentTime - startTime) / animationTime * 2)),
+        mat4.rotateX(mat4.identity(mat4.create()), playerAngleX), playerRotationMatrix);
     }
     else if (currentTime - startTime <= animationTime + 1) {
       playerPositionMatrix = matrixLinearInterp(midAnimationPlayerPosition, endAnimationPlayerPosition, ((currentTime - startTime) / animationTime - 0.5) * 2);
-      playerRotationMatrix = mat4.rotateZ(mat4.identity(mat4.create()), linearInterp(playerAngle - Math.PI / 4.0, playerAngle - Math.PI / 2.0, ((currentTime - startTime) / animationTime - 0.5) * 2));
+      mat4.multiply(
+        mat4.rotateZ(mat4.identity(mat4.create()), linearInterp(playerAngleZ - Math.PI / 4.0, playerAngleZ - Math.PI / 2.0, ((currentTime - startTime) / animationTime - 0.5) * 2)),
+        mat4.rotateX(mat4.identity(mat4.create()), playerAngleX), playerRotationMatrix);
       cameraPositionMatrix = matrixLinearInterp(midCameraPosition, endCameraPosition, ((currentTime - startTime) / animationTime - 0.5) * 2);
     }
     else {
       isD = false;
-      playerAngle -= Math.PI / 2.0;
+      playerAngleZ -= Math.PI / 2.0;
       playerPos[0]++;
     }
   }
@@ -85,8 +90,8 @@ function moveLeft() {
     Object.assign(startCameraPosition, cameraPositionMatrix);
     Object.assign(endCameraPosition, cameraPositionMatrix);
     Object.assign(midCameraPosition, cameraPositionMatrix);
-    mat4.translate(midAnimationPlayerPosition, [-1, (Math.sqrt(2) - 1), 0]);
-    mat4.translate(endAnimationPlayerPosition, [-2, 0, 0]);
+    mat4.translate(midAnimationPlayerPosition, [-0.5, (Math.sqrt(2) - 1) / 2, 0]);
+    mat4.translate(endAnimationPlayerPosition, [-1, 0, 0]);
     mat4.translate(midCameraPosition, [0.5, 0, 0]);
     mat4.translate(endCameraPosition, [1, 0, 0]);
   }
@@ -95,16 +100,20 @@ function moveLeft() {
     if (currentTime - startTime <= animationTime / 2) {
       playerPositionMatrix = matrixLinearInterp(startAnimationPlayerPosition, midAnimationPlayerPosition, (currentTime - startTime) / animationTime * 2);
       cameraPositionMatrix = matrixLinearInterp(startCameraPosition, midCameraPosition, (currentTime - startTime) / animationTime * 2);
-      playerRotationMatrix = mat4.rotateZ(mat4.identity(mat4.create()), linearInterp(playerAngle, playerAngle + Math.PI / 4.0, (currentTime - startTime) / animationTime * 2));
+      mat4.multiply(
+        mat4.rotateZ(mat4.identity(mat4.create()), linearInterp(playerAngleZ, playerAngleZ + Math.PI / 4.0, (currentTime - startTime) / animationTime * 2)),
+        mat4.rotateX(mat4.identity(mat4.create()), playerAngleX), playerRotationMatrix);
     }
     else if (currentTime - startTime <= animationTime + 1) {
       playerPositionMatrix = matrixLinearInterp(midAnimationPlayerPosition, endAnimationPlayerPosition, ((currentTime - startTime) / animationTime - 0.5) * 2);
-      playerRotationMatrix = mat4.rotateZ(mat4.identity(mat4.create()), linearInterp(playerAngle + Math.PI / 4.0, playerAngle + Math.PI / 2.0, ((currentTime - startTime) / animationTime - 0.5) * 2));
       cameraPositionMatrix = matrixLinearInterp(midCameraPosition, endCameraPosition, ((currentTime - startTime) / animationTime - 0.5) * 2);
+      mat4.multiply(
+        mat4.rotateZ(mat4.identity(mat4.create()), linearInterp(playerAngleZ + Math.PI / 4.0, playerAngleZ + Math.PI / 2.0, ((currentTime - startTime) / animationTime - 0.5) * 2)),
+        mat4.rotateX(mat4.identity(mat4.create()), playerAngleX), playerRotationMatrix);
     }
     else {
       isA = false;
-      playerAngle += Math.PI / 2.0;
+      playerAngleZ += Math.PI / 2.0;
       playerPos[0]--;
     }
   }
@@ -122,8 +131,8 @@ function moveForward() {
     Object.assign(startCameraPosition, cameraPositionMatrix);
     Object.assign(endCameraPosition, cameraPositionMatrix);
     Object.assign(midCameraPosition, cameraPositionMatrix);
-    mat4.translate(midAnimationPlayerPosition, [0, (Math.sqrt(2) - 1), -1]);
-    mat4.translate(endAnimationPlayerPosition, [0, 0, -2]);
+    mat4.translate(midAnimationPlayerPosition, [0, (Math.sqrt(2) - 1) / 2, -0.5]);
+    mat4.translate(endAnimationPlayerPosition, [0, 0, - 1]);
     mat4.translate(midCameraPosition, [0, 0, 0.5]);
     mat4.translate(endCameraPosition, [0, 0, 1]);
   }
@@ -132,16 +141,20 @@ function moveForward() {
     if (currentTime - startTime <= animationTime / 2) {
       playerPositionMatrix = matrixLinearInterp(startAnimationPlayerPosition, midAnimationPlayerPosition, (currentTime - startTime) / animationTime * 2);
       cameraPositionMatrix = matrixLinearInterp(startCameraPosition, midCameraPosition, (currentTime - startTime) / animationTime * 2);
-      playerRotationMatrix = mat4.rotateX(mat4.identity(mat4.create()), linearInterp(playerAngle, playerAngle - Math.PI / 4.0, (currentTime - startTime) / animationTime * 2));
+      mat4.multiply(
+        mat4.rotateX(mat4.identity(mat4.create()), linearInterp(playerAngleX, playerAngleX - Math.PI / 4.0, (currentTime - startTime) / animationTime * 2)),
+        mat4.rotateZ(mat4.identity(mat4.create()), playerAngleZ), playerRotationMatrix);
     }
     else if (currentTime - startTime <= animationTime + 1) {
       playerPositionMatrix = matrixLinearInterp(midAnimationPlayerPosition, endAnimationPlayerPosition, ((currentTime - startTime) / animationTime - 0.5) * 2);
-      playerRotationMatrix = mat4.rotateX(mat4.identity(mat4.create()), linearInterp(playerAngle - Math.PI / 4.0, playerAngle - Math.PI / 2.0, ((currentTime - startTime) / animationTime - 0.5) * 2));
+      mat4.multiply(
+        mat4.rotateX(mat4.identity(mat4.create()), linearInterp(playerAngleX - Math.PI / 4.0, playerAngleX - Math.PI / 2.0, ((currentTime - startTime) / animationTime - 0.5) * 2)),
+        mat4.rotateZ(mat4.identity(mat4.create()), playerAngleZ), playerRotationMatrix);
       cameraPositionMatrix = matrixLinearInterp(midCameraPosition, endCameraPosition, ((currentTime - startTime) / animationTime - 0.5) * 2);
     }
     else {
       isW = false;
-      playerAngle -= Math.PI / 2.0;
+      playerAngleX -= Math.PI / 2.0;
       playerPos[2]--;
     }
   }
@@ -159,8 +172,8 @@ function moveBack() {
     Object.assign(startCameraPosition, cameraPositionMatrix);
     Object.assign(endCameraPosition, cameraPositionMatrix);
     Object.assign(midCameraPosition, cameraPositionMatrix);
-    mat4.translate(midAnimationPlayerPosition, [0, (Math.sqrt(2) - 1), 1]);
-    mat4.translate(endAnimationPlayerPosition, [0, 0, 2]);
+    mat4.translate(midAnimationPlayerPosition, [0, (Math.sqrt(2) - 1) / 2, 0.5]);
+    mat4.translate(endAnimationPlayerPosition, [0, 0, 1]);
     mat4.translate(midCameraPosition, [0, 0, -0.5]);
     mat4.translate(endCameraPosition, [0, 0, -1]);
   }
@@ -169,16 +182,20 @@ function moveBack() {
     if (currentTime - startTime <= animationTime / 2) {
       playerPositionMatrix = matrixLinearInterp(startAnimationPlayerPosition, midAnimationPlayerPosition, (currentTime - startTime) / animationTime * 2);
       cameraPositionMatrix = matrixLinearInterp(startCameraPosition, midCameraPosition, (currentTime - startTime) / animationTime * 2);
-      playerRotationMatrix = mat4.rotateX(mat4.identity(mat4.create()), linearInterp(playerAngle, playerAngle + Math.PI / 4.0, (currentTime - startTime) / animationTime * 2));
+      mat4.multiply(
+        mat4.rotateX(mat4.identity(mat4.create()), linearInterp(playerAngleX, playerAngleX + Math.PI / 4.0, (currentTime - startTime) / animationTime * 2)),
+        mat4.rotateZ(mat4.identity(mat4.create()), playerAngleZ), playerRotationMatrix);
     }
     else if (currentTime - startTime <= animationTime + 1) {
       playerPositionMatrix = matrixLinearInterp(midAnimationPlayerPosition, endAnimationPlayerPosition, ((currentTime - startTime) / animationTime - 0.5) * 2);
-      playerRotationMatrix = mat4.rotateX(mat4.identity(mat4.create()), linearInterp(playerAngle + Math.PI / 4.0, playerAngle + Math.PI / 2.0, ((currentTime - startTime) / animationTime - 0.5) * 2));
+      mat4.multiply(
+        mat4.rotateX(mat4.identity(mat4.create()), linearInterp(playerAngleX + Math.PI / 4.0, playerAngleX + Math.PI / 2.0, ((currentTime - startTime) / animationTime - 0.5) * 2)),
+        mat4.rotateZ(mat4.identity(mat4.create()), playerAngleZ), playerRotationMatrix);
       cameraPositionMatrix = matrixLinearInterp(midCameraPosition, endCameraPosition, ((currentTime - startTime) / animationTime - 0.5) * 2);
     }
     else {
       isS = false;
-      playerAngle += Math.PI / 2.0;
+      playerAngleX += Math.PI / 2.0;
       playerPos[2]++;
     }
   }

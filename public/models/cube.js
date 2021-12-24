@@ -56,9 +56,9 @@ function createCube(matrix, name) {
   textureCoordinates = [
     // Front
     0.0, 0.0,
+    0.0, 1.0,
     1.0, 0.0,
     1.0, 1.0,
-    0.0, 1.0,
     // Bottom
     0.0, 0.0,
     1.0, 0.0,
@@ -107,8 +107,9 @@ function createCube(matrix, name) {
   cube.TextureCoordBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, cube.TextureCoordBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW);
-  cube.texture = loadTexture('https://d1llvcsapfiksz.cloudfront.net/vendors/moscilate/moscillate-granular-textures/images/granulartextures_desktop.jpg');
+  //cube.texture = loadTexture('https://d1llvcsapfiksz.cloudfront.net/vendors/moscilate/moscillate-granular-textures/images/granulartextures_desktop.jpg');
   //cube.texture = loadTexture('granulartexturejpg.jpg');
+  cube.texture = loadTexture('/cube-tex');
   cube.render = () => {
 
     gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, cube.matrix);
