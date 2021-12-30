@@ -161,6 +161,8 @@ function initGame() {
       allModels.splice(i, 1);
     }
   }
+
+  createPlane();
 }
 
 /* Linear interpolation for 1f value */
